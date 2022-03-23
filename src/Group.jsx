@@ -1,11 +1,12 @@
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { ItemTypes } from './ItemTypes';
 import { Card } from './Card';
+import { Gap } from './Gap';
 const style = {
     border: '1px dashed gray',
     padding: '0.5rem 1rem',
-    marginBottom: '.5rem',
+    // marginBottom: '.5rem',
     backgroundColor: 'white',
     cursor: 'move',
 
@@ -21,13 +22,17 @@ const DroppableTagArea = ({onDrop,children, index})=>{
             };
         },
         drop(item,monitor){
-            onDrop && onDrop(item.name,item.typeTag,index)
+            if(!monitor.didDrop())
+            {
+                onDrop && onDrop(item.name,item.typeTag,index)
+            }
+          
         }
     });
     drop(ref)
     return <div ref={ref} data-handler-id={handlerId} style={{minHeight:'100px'}}>{children}</div>
 }
-export const Group = ({ id, index, moveCard, members, onDrop }) => {
+export const Group = ({ id, index, moveCard, members, onDrop , onDropToGap}) => {
     const ref = useRef(null);
     const [{ handlerId }, drop] = useDrop({
         accept: ItemTypes.CARD,
@@ -84,10 +89,15 @@ export const Group = ({ id, index, moveCard, members, onDrop }) => {
         }),
     });
     const opacity = isDragging ? 0 : 1;
+    const renderCard = useCallback((card, indexC) => {
+        if(card.typeCard==='card')
+        return (<Card indexGroup={index} key={card.id} index={indexC} id={card.id} text={card.text} moveCard={moveCard} type={ItemTypes.CARD_MEMBER}/>);
+        else return <Gap indexGroup={index}  key={card.id} index={indexC} id={card.id} onDrop={onDropToGap}/>
+    }, [moveCard, onDropToGap, index]);
     drag(drop(ref));
     return (<div ref={ref} style={{ ...style, opacity }} data-handler-id={handlerId}>
         <DroppableTagArea onDrop={onDrop} index={index}>
-            {members && members.map((card, indexC)=><Card indexGroup={index} key={card.id} index={indexC} id={card.id} text={card.text} moveCard={moveCard} type={ItemTypes.CARD_MEMBER}/>)}
+            {members && members.map((card, indexC)=>renderCard(card, indexC))}
         </DroppableTagArea>
 		</div>);
 };

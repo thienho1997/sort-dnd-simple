@@ -3,4 +3,5 @@ export const ItemTypes = {
   GROUP: "group",
   CARD_MEMBER: "card_member",
   TAG: "TAG",
+  GAP: "GAP",
 };
